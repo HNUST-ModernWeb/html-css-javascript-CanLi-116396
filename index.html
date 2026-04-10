@@ -1,242 +1,436 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>个人信息卡片</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "Microsoft YaHei", sans-serif;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>自定义主题个人卡片</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: "Microsoft YaHei", sans-serif;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-        body {
-            min-height: 100vh;
-            background-color: #f0f2f5;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 40px 20px;
-        }
+    :root {
+      --primary: #409eff;
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --text-sub: #666666;
+      --border: #dddddd;
+      --shadow: 0 8px 24px rgba(0,0,0,0.1);
+      --shadow-hover: 0 12px 32px rgba(64, 158, 255, 0.2);
+    }
 
-        /* 页面标题 */
-        .page-title {
-            font-size: 28px;
-            color: #333;
-            margin-bottom: 30px;
-        }
+    body {
+      min-height: 100vh;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+      color: var(--text);
+    }
 
-        /* 卡片容器样式 */
-        .card {
-            width: 100%;
-            max-width: 400px;
-            background-color: white;
-            border-radius: 20px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-            padding: 30px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
+    .color-panel {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: var(--card-bg);
+      padding: 15px;
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      z-index: 99;
+    }
+    .color-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+    }
+    input[type="color"] {
+      width: 30px;
+      height: 30px;
+      border: none;
+      border-radius: 50%;
+      cursor: pointer;
+      overflow: hidden;
+    }
 
-        /* 头像上传区域 */
-        .avatar-container {
-            position: relative;
-            width: 100px;
-            height: 100px;
-            border-radius: 50%;
-            overflow: hidden;
-            border: 3px solid #e0e0e0;
-            cursor: pointer;
-        }
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+    }
+    .theme-toggle:hover {
+      transform: scale(1.05);
+    }
 
-        .avatar {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
+    .page-title {
+      font-size: 32px;
+      margin-bottom: 24px;
+      background: linear-gradient(90deg, var(--primary), #7b61ff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      letter-spacing: 2px;
+      animation: fadeIn 0.8s ease forwards;
+    }
 
-        #avatar-input {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            opacity: 0;
-            cursor: pointer;
-        }
+    .card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--card-bg);
+      border-radius: 20px;
+      box-shadow: var(--shadow);
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 20px;
+      animation: slideUp 0.8s ease forwards;
+      opacity: 0;
+      transform: translateY(30px);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: var(--primary);
+    }
+    .card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-5px);
+    }
 
-        /* 输入框样式 */
-        .input-group {
-            width: 100%;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
+    .avatar-wrap {
+      position: relative;
+    }
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 4px solid var(--primary);
+      cursor: pointer;
+      animation: pulse 3s infinite;
+    }
+    .avatar:hover {
+      transform: scale(1.08) rotate(5deg);
+    }
+    .avatar-edit {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+    }
+    #avatarInput { display: none; }
 
-        .input-label {
-            font-size: 14px;
-            color: #666;
-        }
+    .info {
+      width: 100%;
+      text-align: center;
+      padding: 14px;
+      border-radius: 12px;
+      background: rgba(64, 158, 255, 0.05);
+      opacity: 0;
+      animation: fadeIn 1s ease forwards 0.3s;
+    }
+    #nameDisplay {
+      font-size: 24px;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 6px;
+    }
+    #introDisplay {
+      font-size: 15px;
+      color: var(--text-sub);
+      line-height: 1.6;
+    }
 
-        .edit-input {
-            width: 100%;
-            padding: 10px 15px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 16px;
-            outline: none;
-            transition: border-color 0.3s;
-        }
+    /* 编辑区 */
+    .edit-area {
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+    .edit-area.hidden {
+      display: none;
+    }
 
-        .edit-input:focus {
-            border-color: #409eff;
-        }
+    .input-group {
+      position: relative;
+    }
+    .input, .textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font-size: 16px;
+      outline: none;
+      background: var(--card-bg);
+      color: var(--text);
+      padding-top: 18px;
+    }
+    .input:focus, .textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(64, 158, 255, 0.1);
+    }
+    .label {
+      position: absolute;
+      left: 15px;
+      top: 15px;
+      color: var(--text-sub);
+      font-size: 14px;
+      pointer-events: none;
+    }
+    .input:focus ~ .label,
+    .input:not(:placeholder-shown) ~ .label,
+    .textarea:focus ~ .label,
+    .textarea:not(:placeholder-shown) ~ .label {
+      top: 5px;
+      font-size: 12px;
+      color: var(--primary);
+    }
+    .textarea {
+      resize: none;
+      min-height: 100px;
+    }
 
-        textarea.edit-input {
-            resize: none;
-            min-height: 80px;
-        }
+    /* 按钮样式 */
+    #saveBtn, #editBtn {
+      padding: 12px;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      font-weight: 500;
+      box-shadow: 0 2px 8px rgba(64, 158, 255, 0.3);
+    }
+    #saveBtn:hover, #editBtn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(64, 158, 255, 0.4);
+    }
 
-        /* 保存按钮样式 */
-        #save-btn {
-            width: 100%;
-            padding: 12px;
-            background-color: #409eff;
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
+    /* 编辑按钮默认隐藏 */
+    #editBtn {
+      display: none;
+    }
+    #editBtn.show {
+      display: block;
+    }
 
-        #save-btn:hover {
-            background-color: #337ecc;
-        }
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(64,158,255,0.4); }
+      70% { box-shadow: 0 0 0 12px rgba(64,158,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(64,158,255,0); }
+    }
 
-        /* 展示信息样式 */
-        .info-display {
-            width: 100%;
-            text-align: center;
-            display: none; /* 默认隐藏，保存后显示 */
-        }
-
-        .name-display {
-            font-size: 22px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .bio-display {
-            font-size: 15px;
-            color: #666;
-            line-height: 1.5;
-        }
-    </style>
+    .dark {
+      --bg: #1a1a1a;
+      --card-bg: #2a2a2a;
+      --text: #f0f0f0;
+      --text-sub: #b0b0b0;
+      --border: #444;
+      --shadow: 0 8px 24px rgba(0,0,0,0.3);
+      --shadow-hover: 0 12px 32px rgba(88, 166, 255, 0.3);
+    }
+  </style>
 </head>
+
 <body>
-    <h1 class="page-title">个人信息卡片</h1>
+  <div class="color-panel">
+    <div class="color-item"><span>主题色</span><input type="color" id="colorPrimary" value="#409eff"></div>
+    <div class="color-item"><span>背景色</span><input type="color" id="colorBg" value="#f0f2f5"></div>
+    <div class="color-item"><span>卡片色</span><input type="color" id="colorCard" value="#ffffff"></div>
+    <div class="color-item"><span>文字色</span><input type="color" id="colorText" value="#333333"></div>
+  </div>
 
-    <div class="card">
-        <!-- 头像上传区域 -->
-        <div class="avatar-container">
-            <img id="avatar-img" class="avatar" src="https://picsum.photos/100/100" alt="个人头像">
-            <input type="file" id="avatar-input" accept="image/*">
-        </div>
+  <button class="theme-toggle" id="themeBtn">切换深色模式</button>
+  <h1 class="page-title">个人信息卡片</h1>
 
-        <!-- 编辑区域 -->
-        <div class="input-group">
-            <label class="input-label">姓名</label>
-            <input type="text" id="name-input" class="edit-input" placeholder="请输入你的姓名">
-        </div>
-
-        <div class="input-group">
-            <label class="input-label">个人简介</label>
-            <textarea id="bio-input" class="edit-input" placeholder="请输入你的个人简介"></textarea>
-        </div>
-
-        <!-- 保存按钮 -->
-        <button id="save-btn">保存信息</button>
-
-        <!-- 信息展示区域 -->
-        <div class="info-display" id="info-display">
-            <div class="name-display" id="name-display"></div>
-            <div class="bio-display" id="bio-display"></div>
-        </div>
+  <div class="card">
+    <div class="avatar-wrap">
+      <input type="file" id="avatarInput" accept="image/*">
+      <img src="https://picsum.photos/200/200" class="avatar" id="avatarPreview">
+      <div class="avatar-edit">✏️</div>
     </div>
 
-    <script>
-        // 获取DOM元素
-        const avatarInput = document.getElementById('avatar-input');
-        const avatarImg = document.getElementById('avatar-img');
-        const nameInput = document.getElementById('name-input');
-        const bioInput = document.getElementById('bio-input');
-        const saveBtn = document.getElementById('save-btn');
-        const infoDisplay = document.getElementById('info-display');
-        const nameDisplay = document.getElementById('name-display');
-        const bioDisplay = document.getElementById('bio-display');
+    <div class="info">
+      <div id="nameDisplay">请输入姓名</div>
+      <div id="introDisplay">请输入个人简介</div>
+    </div>
 
-        // 1. 头像上传预览功能
-        avatarInput.addEventListener('change', function(e) {
-            // 获取用户选择的文件
-            const file = e.target.files[0];
-            if (file) {
-                // 创建文件读取对象
-                const reader = new FileReader();
-                // 读取完成后更新头像
-                reader.onload = function(event) {
-                    avatarImg.src = event.target.result;
-                };
-                // 读取图片文件
-                reader.readAsDataURL(file);
-            }
-        });
+    <div class="edit-area" id="editArea">
+      <div class="input-group">
+        <input type="text" class="input" id="nameInput" placeholder=" ">
+        <label class="label">姓名</label>
+      </div>
+      <div class="input-group">
+        <textarea class="textarea" id="introInput" placeholder=" "></textarea>
+        <label class="label">个人简介</label>
+      </div>
+      <button id="saveBtn">保存修改</button>
+    </div>
 
-        // 2. 保存信息功能
-        saveBtn.addEventListener('click', function() {
-            // 获取输入框内容
-            const name = nameInput.value.trim();
-            const bio = bioInput.value.trim();
+    <!-- 编辑按钮 -->
+    <button id="editBtn">编辑信息</button>
+  </div>
 
-            // 简单校验
-            if (!name) {
-                alert('请输入姓名！');
-                return;
-            }
+  <script>
+    const root = document.documentElement;
+    const nameInput = document.getElementById('nameInput');
+    const introInput = document.getElementById('introInput');
+    const nameDisplay = document.getElementById('nameDisplay');
+    const introDisplay = document.getElementById('introDisplay');
+    const saveBtn = document.getElementById('saveBtn');
+    const editBtn = document.getElementById('editBtn');
+    const themeBtn = document.getElementById('themeBtn');
+    const avatarInput = document.getElementById('avatarInput');
+    const avatarPreview = document.getElementById('avatarPreview');
+    const editArea = document.getElementById('editArea');
 
-            // 将内容渲染到展示区域
-            nameDisplay.textContent = name;
-            bioDisplay.textContent = bio;
+    // 颜色保存
+    function getSavedColor(key, def) { return localStorage.getItem(key) || def; }
+    function saveColor(key, val) { localStorage.setItem(key, val); }
+    function applyColors() {
+      const primary = getSavedColor('primary', '#409eff');
+      const bg = getSavedColor('bg', '#f0f2f5');
+      const card = getSavedColor('card', '#ffffff');
+      const text = getSavedColor('text', '#333333');
+      root.style.setProperty('--primary', primary);
+      root.style.setProperty('--bg', bg);
+      root.style.setProperty('--card-bg', card);
+      root.style.setProperty('--text', text);
+      document.getElementById('colorPrimary').value = primary;
+      document.getElementById('colorBg').value = bg;
+      document.getElementById('colorCard').value = card;
+      document.getElementById('colorText').value = text;
+    }
+    applyColors();
 
-            // 隐藏编辑框，显示展示信息
-            nameInput.style.display = 'none';
-            bioInput.style.display = 'none';
-            infoDisplay.style.display = 'block';
-            
-            // 修改按钮文字
-            saveBtn.textContent = '修改信息';
-            
-            // 再次点击时切换回编辑模式
-            saveBtn.onclick = editInfo;
-        });
+    document.getElementById('colorPrimary').addEventListener('input', e=>{
+      const v=e.target.value; root.style.setProperty('--primary',v); saveColor('primary',v);
+    });
+    document.getElementById('colorBg').addEventListener('input', e=>{
+      const v=e.target.value; root.style.setProperty('--bg',v); saveColor('bg',v);
+    });
+    document.getElementById('colorCard').addEventListener('input', e=>{
+      const v=e.target.value; root.style.setProperty('--card-bg',v); saveColor('card',v);
+    });
+    document.getElementById('colorText').addEventListener('input', e=>{
+      const v=e.target.value; root.style.setProperty('--text',v); saveColor('text',v);
+    });
 
-        // 3. 修改信息功能
-        function editInfo() {
-            // 显示编辑框，隐藏展示信息
-            nameInput.style.display = 'block';
-            bioInput.style.display = 'block';
-            infoDisplay.style.display = 'none';
-            
-            // 恢复按钮文字和功能
-            saveBtn.textContent = '保存信息';
-            saveBtn.onclick = null;
-            saveBtn.addEventListener('click', arguments.callee.caller);
-        }
-    </script>
+    // 深色模式
+    let isDark = localStorage.getItem('dark') === '1';
+    if (isDark) { document.body.classList.add('dark'); themeBtn.textContent = '切换浅色模式'; }
+    themeBtn.addEventListener('click', () => {
+      isDark = !isDark;
+      document.body.classList.toggle('dark', isDark);
+      localStorage.setItem('dark', isDark ? '1' : '0');
+      themeBtn.textContent = isDark ? '切换浅色模式' : '切换深色模式';
+    });
+
+    // 头像
+    avatarPreview.addEventListener('click', () => avatarInput.click());
+    avatarInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (ev) => { avatarPreview.src = ev.target.result; };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // 加载信息
+    function loadInfo() {
+      const savedName = localStorage.getItem('userName') || '';
+      const savedIntro = localStorage.getItem('userIntro') || '';
+      nameInput.value = savedName;
+      introInput.value = savedIntro;
+      nameDisplay.textContent = savedName || '请输入姓名';
+      introDisplay.textContent = savedIntro || '请输入个人简介';
+
+      if (savedName || savedIntro) {
+        editArea.classList.add('hidden');
+        editBtn.classList.add('show');
+      }
+    }
+    loadInfo();
+
+    // 实时保存
+    nameInput.addEventListener('input', () => {
+      localStorage.setItem('userName', nameInput.value);
+    });
+    introInput.addEventListener('input', () => {
+      localStorage.setItem('userIntro', introInput.value);
+    });
+
+    // ======================================
+    // 【保存】→ 编辑框隐藏，显示【编辑】按钮
+    // ======================================
+    saveBtn.addEventListener('click', () => {
+      const name = nameInput.value.trim() || '请输入姓名';
+      const intro = introInput.value.trim() || '请输入个人简介';
+      nameDisplay.textContent = name;
+      introDisplay.textContent = intro;
+      localStorage.setItem('userName', name);
+      localStorage.setItem('userIntro', intro);
+      
+      editArea.classList.add('hidden');
+      editBtn.classList.add('show');
+      showTip('保存成功 ✅');
+    });
+
+    // ======================================
+    // 【编辑】→ 显示编辑框，隐藏按钮
+    // ======================================
+    editBtn.addEventListener('click', () => {
+      editArea.classList.remove('hidden');
+      editBtn.classList.remove('show');
+    });
+
+    function showTip(text) {
+      const tip = document.createElement('div');
+      tip.style.cssText = `
+        position:fixed; top:20px; left:50%; transform:translateX(-50%);
+        padding:8px 16px; border-radius:8px; background:var(--primary);
+        color:white; z-index:999;
+      `;
+      tip.textContent = text;
+      document.body.appendChild(tip);
+      setTimeout(() => { tip.style.opacity=0; setTimeout(()=>tip.remove(),400); }, 1500);
+    }
+  </script>
 </body>
 </html>
